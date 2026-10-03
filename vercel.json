@@ -4,6 +4,6 @@
   "buildCommand": "npm run build",
   "outputDirectory": "dist",
   "functions": {
-    "api/product.mjs": { "maxDuration": 15 }
+    "api/*.mjs": { "maxDuration": 30 }
   }
 }

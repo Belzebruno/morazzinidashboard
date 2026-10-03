@@ -7,6 +7,7 @@ test('build publica páginas e assets sem arquivos privados', () => {
     assert.match(fs.readFileSync(`dist/${page}`, 'utf8'), /brand-logo/);
   }
   assert.ok(fs.existsSync('dist/assets/js/app.js'));
+  assert.ok(!fs.readFileSync('dist/assets/js/config.js','utf8').includes('229.90'));
   for (const file of ['.env.local','.neon','server.cjs','neon.ts','package.json']) assert.equal(fs.existsSync(`dist/${file}`),false);
 });
 

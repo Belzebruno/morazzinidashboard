@@ -5,6 +5,10 @@ const net = require('node:net');
 const fs = require('node:fs');
 const path = require('node:path');
 const root = __dirname;
+if (!process.env.VERCEL && fs.existsSync(path.join(root,'.env.local'))) {
+  const env = require('node:util').parseEnv(fs.readFileSync(path.join(root,'.env.local'),'utf8'));
+  for (const [key,value] of Object.entries(env)) if(!process.env[key]) process.env[key]=value;
+}
 function isPublic(address) {
   if (net.isIP(address) !== 4) return false;
   const [a,b] = address.split('.').map(Number);
@@ -39,6 +43,7 @@ async function readProduct(value, redirects = 0, deadline = Date.now() + 9000) {
 const publicFiles = /^(?:index\.html|patrimonio\.html|financeiro\.html|assets\/(?:css|js)\/[\w.-]+|Logo\/[^/]+)$/;
 const server = http.createServer(async (req,res) => {
   const url = new URL(req.url,'http://localhost');
+  if (['/api/state','/api/session','/api/import','/api/default-items'].includes(url.pathname)) return require('./lib/dashboard-api.cjs').handler(req,res);
   if (req.method !== 'GET') {res.writeHead(405); return res.end();}
   if (url.pathname === '/api/product') {
     res.setHeader('Content-Type','application/json; charset=utf-8'); res.setHeader('Cache-Control','no-store');

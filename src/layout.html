@@ -63,7 +63,24 @@
         </div>
       </header>
 
-      <main class="app">
+      <section class="database-bar" aria-label="Sincronização">
+        <p id="syncStatus" role="status">Conectando ao banco…</p>
+        <button class="btn" id="importLocal" hidden>Importar itens deste navegador</button>
+        <button class="btn" id="retrySync" hidden>Tentar novamente / recarregar</button>
+        <button class="btn" id="logout" hidden>Sair</button>
+      </section>
+      <section class="login-panel" id="loginPanel" hidden>
+        <h1>Acessar Morazzini</h1>
+        <p>Entre com a senha do painel para acessar os itens e valores.</p>
+        <form id="loginForm">
+          <label for="dashboardUsername">Usuário</label>
+          <input id="dashboardUsername" class="link-input" autocomplete="username" required>
+          <label for="dashboardPassword">Senha do painel</label>
+          <input id="dashboardPassword" class="link-input" type="password" autocomplete="current-password" required>
+          <button class="btn primary" type="submit">Entrar</button>
+        </form>
+      </section>
+      <main class="app" hidden>
 {{summary}}
         <section class="workspace">
 {{items}}
@@ -105,6 +122,7 @@
   <script defer src="assets/js/state.js"></script>
   <script defer src="assets/js/products.js"></script>
   <script defer src="assets/js/views.js"></script>
+  <script defer src="assets/js/sync.js"></script>
   <script defer src="assets/js/app.js"></script>
 </body>
 </html>

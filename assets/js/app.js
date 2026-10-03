@@ -97,11 +97,14 @@
       }
     });
 
-    document.querySelector("#resetList").addEventListener("click", () => {
+    document.querySelector("#resetList").addEventListener("click", async () => {
       const confirmed = confirm("Restaurar a lista inicial de máquinas? O valor guardado será mantido.");
       if (!confirmed) return;
       currentView = "opening";
-      state.machines = initialMachines.map((machine) => ({ ...machine }));
+      try {
+        const defaults = await databaseRequest('/api/default-items');
+        state.machines = defaults.items.map((machine) => ({ ...machine }));
+      } catch (error) { syncMessage(error.message,true); return; }
       state.patrimony = [];
       persistAndRenderAll();
     });
@@ -118,7 +121,9 @@
     savedInput.value = formatMoney(state.saved);
     financeSalaryInput.value = formatMoney(state.finance.salary);
     financePercentInput.value = formatPercent(state.finance.percent);
-    persistAndRenderAll();
+    renderViewChrome();
+    renderMachines();
+    renderTotals();
   
 document.querySelector('#today').textContent = new Intl.DateTimeFormat('pt-BR', {dateStyle: 'medium'}).format(new Date());
 document.querySelector('#productReview').addEventListener('submit', event => {
@@ -149,3 +154,4 @@ productUrlInput.addEventListener('input', () => {
   pendingProduct = null;
   document.querySelector('#productReview').hidden = true;
 });
+initializeDatabase();
