@@ -4,9 +4,11 @@ let pendingSave = null;
 let saving = false;
 let saveTimer;
 const BACKUP_KEY = STORAGE_KEY + '-before-neon';
-function syncMessage(message,failed=false) {
-  document.querySelector('#syncStatus').textContent = message;
-  document.querySelector('#syncStatus').dataset.error = String(failed);
+function panelNotice(message='') {
+  const notice=document.querySelector('#syncStatus');
+  notice.textContent=message;
+  notice.hidden=!message;
+  document.querySelector('.database-bar').hidden=!message && document.querySelector('#importLocal').hidden && document.querySelector('#retrySync').hidden;
 }
 function assignIds(payload) {
   for(const item of [...payload.machines,...payload.patrimony]) {
@@ -34,7 +36,6 @@ function queueDatabaseSave() {
   if(!databaseReady)return;
   pendingSave=JSON.parse(JSON.stringify(assignIds(state)));
   localStorage.setItem(STORAGE_KEY,JSON.stringify(state));
-  syncMessage('Alterações pendentes…');
   clearTimeout(saveTimer);saveTimer=setTimeout(flushDatabaseSave,450);
 }
 async function flushDatabaseSave() {
@@ -44,17 +45,17 @@ async function flushDatabaseSave() {
   try {
     while(pendingSave){
       const snapshot=pendingSave;pendingSave=null;
-      syncMessage('Salvando no Neon…');
       try{
         const result=await databaseRequest('/api/state',{method:'PUT',body:JSON.stringify({state:snapshot,revision:databaseRevision})});
         databaseRevision=result.revision;
       }catch(error){pendingSave=pendingSave||snapshot;throw error;}
     }
-    syncMessage('Salvo no Neon');
+    document.querySelector('#retrySync').hidden=true;
+    panelNotice();
   }catch(error){
     failed=true;
     localStorage.setItem(BACKUP_KEY,JSON.stringify(state));
-    syncMessage(error.message+' A cópia local foi preservada.',true);
+    panelNotice(error.message+' A cópia local foi preservada.');
     if(error.status===409){databaseReady=false;document.querySelector('.app').inert=true;}
     document.querySelector('#retrySync').hidden=false;
   }finally{saving=false;if(!failed&&pendingSave)flushDatabaseSave();}
@@ -63,7 +64,7 @@ async function initializeDatabase() {
   databaseReady=false;
   document.querySelector('.app').hidden=true;
   for(const id of ['logout','importLocal','retrySync']) document.querySelector('#'+id).hidden=true;
-  syncMessage('Conectando ao banco…');
+  panelNotice();
   try{
     await databaseRequest('/api/session');
     document.querySelector('#loginPanel').hidden=true;
@@ -90,17 +91,17 @@ async function initializeDatabase() {
     requestAnimationFrame(()=>machineList.querySelectorAll('.machine-name').forEach(resizeNameField));
     document.querySelector('#importLocal').hidden=!localStorage.getItem(BACKUP_KEY);
     document.querySelector('#logout').hidden=false;
-    syncMessage('Conectado ao Neon');
+    panelNotice();
   }catch(error){
-    if(error.status===401){document.querySelector('#loginPanel').hidden=false;syncMessage('Entre para acessar os dados da Morazzini.');}
-    else{syncMessage(error.message,true);document.querySelector('#retrySync').hidden=false;}
+    if(error.status===401){document.querySelector('#loginPanel').hidden=false;}
+    else{document.querySelector('#retrySync').hidden=false;panelNotice(error.message);}
   }
 }
 document.querySelector('#loginForm').addEventListener('submit',async event=>{
   event.preventDefault();
   const button=event.submitter;button.disabled=true;
   try{await databaseRequest('/api/session',{method:'POST',body:JSON.stringify({username:document.querySelector('#dashboardUsername').value.trim(),password:document.querySelector('#dashboardPassword').value})});document.querySelector('#dashboardPassword').value='';await initializeDatabase();}
-  catch(error){syncMessage(error.message,true);}finally{button.disabled=false;}
+  catch(error){panelNotice(error.message);}finally{button.disabled=false;}
 });
 document.querySelector('#importLocal').addEventListener('click',async event=>{
   await flushDatabaseSave();
@@ -111,8 +112,8 @@ document.querySelector('#importLocal').addEventListener('click',async event=>{
     const backup=assignIds(normalizeState(JSON.parse(localStorage.getItem(BACKUP_KEY))));
     localStorage.setItem(BACKUP_KEY,JSON.stringify(backup));
     applyDatabase(await databaseRequest('/api/import',{method:'POST',body:JSON.stringify({state:backup,revision:databaseRevision})}));
-    localStorage.removeItem(BACKUP_KEY);event.target.hidden=true;syncMessage('Itens locais importados para o Neon.');
-  }catch(error){syncMessage(error.message,true);}finally{event.target.disabled=false;}
+    localStorage.removeItem(BACKUP_KEY);event.target.hidden=true;panelNotice();
+  }catch(error){panelNotice(error.message);}finally{event.target.disabled=false;}
 });
 document.querySelector('#retrySync').addEventListener('click',()=>{
   if(databaseReady&&pendingSave)flushDatabaseSave();

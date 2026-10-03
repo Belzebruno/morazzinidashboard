@@ -1,7 +1,7 @@
 .nav-item { text-decoration: none; }
 .database-bar { padding: 12px 28px; display: flex; align-items: center; flex-wrap: wrap; gap: 10px; }
 .database-bar p { margin: 0; font-size: .85rem; flex: 1; }
-#syncStatus[data-error="true"] { color: var(--danger); }
+#syncStatus { color: var(--danger); }
 .login-panel { max-width: 420px; padding: 24px; margin: 24px auto; }
 .login-panel form { display: grid; gap: 12px; }
 :focus-visible { outline: 3px solid var(--green); outline-offset: 3px; }

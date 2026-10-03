@@ -60,14 +60,14 @@
         <div class="top-actions">
           <span class="top-pill" id="currentSection">Abertura</span>
           <span id="today"></span>
+          <button class="btn" id="logout" hidden>Sair</button>
         </div>
       </header>
 
-      <section class="database-bar" aria-label="Sincronização">
-        <p id="syncStatus" role="status">Conectando ao banco…</p>
+      <section class="database-bar" aria-label="Avisos do painel" hidden>
+        <p id="syncStatus" role="alert" hidden></p>
         <button class="btn" id="importLocal" hidden>Importar itens deste navegador</button>
         <button class="btn" id="retrySync" hidden>Tentar novamente / recarregar</button>
-        <button class="btn" id="logout" hidden>Sair</button>
       </section>
       <section class="login-panel" id="loginPanel" hidden>
         <h1>Acessar Morazzini</h1>
