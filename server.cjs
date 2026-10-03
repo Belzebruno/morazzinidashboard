@@ -57,4 +57,4 @@ const server = http.createServer(async (req,res) => {
   } catch {res.writeHead(404);res.end();}
 });
 if (require.main === module) server.listen(Number(process.env.PORT || 3000),'0.0.0.0', () => console.log('Morazzini: http://localhost:' + (process.env.PORT || 3000)));
-module.exports = {server, isPublic};
+module.exports = {server, isPublic, readProduct};

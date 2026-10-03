@@ -65,18 +65,13 @@
     .brand {
       position: relative;
       width: 176px;
-      height: 82px;
-      overflow: hidden;
+      height: 112px;
       margin: 0 auto 2px;
     }
 
-    .brand img {
-      position: absolute;
-      top: -104px;
-      left: -54px;
-      width: 284px;
-      max-width: none;
-      height: auto;
+    .brand-logo {
+      width: 100%;
+      height: 100%;
       display: block;
     }
 
@@ -708,13 +703,7 @@
 
       .brand {
         width: 150px;
-        height: 70px;
-      }
-
-      .brand img {
-        top: -92px;
-        left: -56px;
-        width: 262px;
+        height: 96px;
       }
 
       .summary {

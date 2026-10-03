@@ -41,4 +41,8 @@ git commit -m "Organiza páginas e melhora cadastro de produtos e UI mobile"
 
 O repositório Git local está preparado. Crie o repositório remoto no provedor escolhido e configure `git remote add origin URL_DO_REPOSITORIO`, seguido de `git push -u origin main`. Nenhum remoto é configurado automaticamente.
 
-Para publicar com importação automática, use hospedagem com suporte a servidor Node.js. Hospedagem estática oferece somente cadastro manual.
+## Publicar na Vercel
+
+O arquivo `vercel.json` configura o projeto sem framework, com `npm run build` e saída `dist/`. O build copia somente páginas, estilos, scripts e logos para a publicação. A consulta de produtos funciona por `api/product.mjs`, uma função Node.js que reutiliza a leitura segura das lojas em `server.cjs`.
+
+Conecte o repositório na Vercel e use a branch `main`. O servidor de desenvolvimento (`npm start`) não precisa ser executado na hospedagem. A configuração Neon está em `neon.ts`; o dashboard ainda salva os dados no navegador. Não publique `.env.local` nem `.neon`.
