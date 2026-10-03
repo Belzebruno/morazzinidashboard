@@ -8,7 +8,7 @@ function panelNotice(message='') {
   const notice=document.querySelector('#syncStatus');
   notice.textContent=message;
   notice.hidden=!message;
-  document.querySelector('.database-bar').hidden=!message && document.querySelector('#importLocal').hidden && document.querySelector('#retrySync').hidden;
+  document.querySelector('.database-bar').hidden=!message && document.querySelector('#retrySync').hidden;
 }
 function assignIds(payload) {
   for(const item of [...payload.machines,...payload.patrimony]) {
@@ -63,7 +63,7 @@ async function flushDatabaseSave() {
 async function initializeDatabase() {
   databaseReady=false;
   document.querySelector('.app').hidden=true;
-  for(const id of ['logout','importLocal','retrySync']) document.querySelector('#'+id).hidden=true;
+  for(const id of ['logout','retrySync']) document.querySelector('#'+id).hidden=true;
   panelNotice();
   try{
     await databaseRequest('/api/session');
@@ -89,7 +89,6 @@ async function initializeDatabase() {
     document.querySelector('.app').hidden=false;
     document.querySelector('.app').inert=false;
     requestAnimationFrame(()=>machineList.querySelectorAll('.machine-name').forEach(resizeNameField));
-    document.querySelector('#importLocal').hidden=!localStorage.getItem(BACKUP_KEY);
     document.querySelector('#logout').hidden=false;
     panelNotice();
   }catch(error){
@@ -103,18 +102,6 @@ document.querySelector('#loginForm').addEventListener('submit',async event=>{
   try{await databaseRequest('/api/session',{method:'POST',body:JSON.stringify({username:document.querySelector('#dashboardUsername').value.trim(),password:document.querySelector('#dashboardPassword').value})});document.querySelector('#dashboardPassword').value='';await initializeDatabase();}
   catch(error){panelNotice(error.message);}finally{button.disabled=false;}
 });
-document.querySelector('#importLocal').addEventListener('click',async event=>{
-  await flushDatabaseSave();
-  if(pendingSave||saving)return;
-  if(!confirm('Adicionar ao banco os itens da antiga lista deste navegador? Os valores financeiros já salvos no banco serão mantidos.'))return;
-  event.target.disabled=true;
-  try{
-    const backup=assignIds(normalizeState(JSON.parse(localStorage.getItem(BACKUP_KEY))));
-    localStorage.setItem(BACKUP_KEY,JSON.stringify(backup));
-    applyDatabase(await databaseRequest('/api/import',{method:'POST',body:JSON.stringify({state:backup,revision:databaseRevision})}));
-    localStorage.removeItem(BACKUP_KEY);event.target.hidden=true;panelNotice();
-  }catch(error){panelNotice(error.message);}finally{event.target.disabled=false;}
-});
 document.querySelector('#retrySync').addEventListener('click',()=>{
   if(databaseReady&&pendingSave)flushDatabaseSave();
   else{pendingSave=null;initializeDatabase();}
@@ -125,9 +112,3 @@ document.querySelector('#logout').addEventListener('click',async()=>{
 });
 window.addEventListener('beforeunload',event=>{if(pendingSave||saving){event.preventDefault();event.returnValue='';}});
 window.addEventListener('resize',()=>machineList.querySelectorAll('.machine-name').forEach(resizeNameField));
-document.querySelectorAll('a[data-view]').forEach(link=>link.addEventListener('click',async event=>{
-  if(!pendingSave&&!saving)return;
-  event.preventDefault();clearTimeout(saveTimer);
-  while(saving)await new Promise(resolve=>setTimeout(resolve,50));
-  await flushDatabaseSave();if(!pendingSave)location.href=link.href;
-}));

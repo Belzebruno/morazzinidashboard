@@ -24,7 +24,7 @@
 
       <nav class="nav-block" aria-label="Planejamento">
         <div class="nav-title">Planejamento</div>
-        <a class="nav-item active" href="index.html" data-view="opening">
+        <a class="nav-item" href="index.html" data-view="opening">
           <span class="nav-icon">01</span>
           Abertura
         </a>
@@ -58,7 +58,7 @@
           <strong>Plano de abertura</strong>
         </div>
         <div class="top-actions">
-          <span class="top-pill" id="currentSection">Abertura</span>
+          <span class="top-pill" id="currentSection">{{title}}</span>
           <span id="today"></span>
           <button class="btn" id="logout" hidden>Sair</button>
         </div>
@@ -66,7 +66,6 @@
 
       <section class="database-bar" aria-label="Avisos do painel" hidden>
         <p id="syncStatus" role="alert" hidden></p>
-        <button class="btn" id="importLocal" hidden>Importar itens deste navegador</button>
         <button class="btn" id="retrySync" hidden>Tentar novamente / recarregar</button>
       </section>
       <section class="login-panel" id="loginPanel" hidden>
@@ -123,6 +122,7 @@
   <script defer src="assets/js/products.js"></script>
   <script defer src="assets/js/views.js"></script>
   <script defer src="assets/js/sync.js"></script>
+  <script defer src="assets/js/navigation.js"></script>
   <script defer src="assets/js/app.js"></script>
 </body>
 </html>

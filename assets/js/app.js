@@ -104,7 +104,7 @@
       try {
         const defaults = await databaseRequest('/api/default-items');
         state.machines = defaults.items.map((machine) => ({ ...machine }));
-      } catch (error) { syncMessage(error.message,true); return; }
+      } catch (error) { panelNotice(error.message); return; }
       state.patrimony = [];
       persistAndRenderAll();
     });

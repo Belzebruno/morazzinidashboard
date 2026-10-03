@@ -1,3 +1,4 @@
+html { overflow-y: scroll; }
 .nav-item { text-decoration: none; }
 .database-bar { padding: 12px 28px; display: flex; align-items: center; flex-wrap: wrap; gap: 10px; }
 .database-bar p { margin: 0; font-size: .85rem; flex: 1; }
@@ -19,12 +20,13 @@ input, textarea { max-width: 100%; }
 .machine { grid-template-columns: minmax(0, 1fr) 120px auto; gap: 10px; padding: 10px 0; }
 .machine-name { padding: 4px 0; }
 @media(max-width: 940px) {
+  .shell { grid-template-rows: auto minmax(0, 1fr); align-content: start; }
   .sidebar { padding: 12px 20px; gap: 8px; }
   .sidebar .brand { margin: 0 auto; }
   .nav-block { display: flex; gap: 8px; justify-content: center; }
   .nav-title { display: none; }
   .nav-item { flex: 1; justify-content: center; min-height: 48px; border-radius: 8px; }
-  .sidebar { display: grid; grid-template-columns: 1fr 2fr; }
+  .sidebar { display: grid; grid-template-columns: 1fr 2fr; align-content: start; }
   .sidebar .brand { grid-column: 1 / -1; }
   .summary { gap: 8px; }
 }
@@ -32,9 +34,11 @@ input, textarea { max-width: 100%; }
   .sidebar { padding: 8px 12px 12px; }
   .nav-icon { display: none; }
   .nav-item { padding: 8px 4px; font-size: .9rem; }
-  .topbar { flex-direction: row; align-items: center; gap: 8px; padding: 12px 16px; }
-  .top-actions { font-size: .75rem; flex-wrap: wrap; justify-content: flex-end; }
-  .breadcrumbs { font-size: .8rem; gap: 6px; }
+  .topbar { display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: center; gap: 8px; padding: 12px 16px; }
+  .top-actions { font-size: .75rem; gap: 8px; flex-wrap: nowrap; }
+  .top-pill { min-width: 94px; text-align: center; white-space: nowrap; }
+  #today { display: none; }
+  .breadcrumbs { font-size: .8rem; gap: 6px; line-height: 1.4; }
   .app { padding: 16px 12px 24px; }
   .summary { grid-template-columns: repeat(2, minmax(0, 1fr)); margin: 12px 0 18px; border: 0; }
   .metric, .metric + .metric, .metric:nth-child(2n) { min-height: 64px; padding: 10px; border: 1px solid var(--line-soft); border-radius: 6px; background: white; min-width: 0; }

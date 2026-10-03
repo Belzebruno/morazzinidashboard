@@ -20,7 +20,6 @@
 
         item.dataset.sourceUrl = sourceUrl;
         name.value = machine.name;
-        resizeNameField(name);
         price.value = formatMoney(machine.price);
 
         if (sourceUrl) {
@@ -72,6 +71,7 @@
         });
 
         machineList.append(item);
+        resizeNameField(name);
       });
 
       requestAnimationFrame(() => {
@@ -87,7 +87,8 @@
         bought: true,
         purchasedAt: new Date().toISOString()
       });
-      switchView("patrimony");
+      saveState();
+      navigateToView("patrimony");
     }
 
     function renderTotals() {
@@ -228,9 +229,4 @@
         if (button.dataset.view === currentView) button.setAttribute("aria-current", "page");
         else button.removeAttribute("aria-current");
       });
-    }
-
-    function switchView(view) {
-      currentView = ["opening", "patrimony", "finance"].includes(view) ? view : "opening";
-      persistAndRenderAll();
     }
