@@ -60,7 +60,9 @@ async function flushDatabaseSave() {
   }finally{saving=false;if(!failed&&pendingSave)flushDatabaseSave();}
 }
 async function initializeDatabase() {
+  databaseReady=false;
   document.querySelector('.app').hidden=true;
+  for(const id of ['logout','importLocal','retrySync']) document.querySelector('#'+id).hidden=true;
   syncMessage('Conectando ao banco…');
   try{
     await databaseRequest('/api/session');
