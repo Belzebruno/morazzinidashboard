@@ -437,7 +437,7 @@
 
     .finance-form {
       display: grid;
-      grid-template-columns: repeat(2, minmax(0, 1fr));
+      grid-template-columns: repeat(3, minmax(0, 1fr));
       gap: 32px;
       padding: 24px 0;
       border-bottom: 1px solid var(--line);
@@ -446,6 +446,20 @@
     .finance-field {
       display: grid;
       gap: 8px;
+      min-width: 0;
+    }
+
+    .finance-field .money-input,
+    .finance-field .percent-input {
+      min-height: 48px;
+      border: 1px solid var(--line);
+      border-radius: 6px;
+      background: var(--surface);
+      padding: 10px 12px;
+    }
+
+    .finance-field input:focus {
+      border-color: var(--green);
     }
 
     .finance-field span {

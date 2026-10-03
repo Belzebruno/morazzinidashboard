@@ -135,15 +135,16 @@
       }
 
       if (currentView === "finance") {
+        const savedProgress = remaining > 0 ? Math.min(100, Math.max(0, saved / remaining) * 100) : 0;
         progressPanel.classList.add("asset-progress");
-        progressHeading.textContent = "Reserva mensal planejada";
+        progressHeading.textContent = "Progresso do valor guardado";
         savedMoneyPanel.hidden = false;
         savedInput.disabled = false;
-        totals.progressText.textContent = formatPercent(percent);
-        totals.progressFill.style.width = `${percent}%`;
-        totals.progressNote.textContent = monthlySaving > 0
-          ? `Guardando ${formatMoney(monthlySaving)} por mês, o objetivo fica em ${formatMonths(months)}.`
-          : "Informe salário e percentual para calcular o prazo.";
+        totals.progressText.textContent = formatPercent(savedProgress);
+        totals.progressFill.style.width = `${savedProgress}%`;
+        totals.progressNote.textContent = remaining > 0
+          ? `${formatMoney(saved)} guardados de ${formatMoney(remaining)} para as máquinas.`
+          : "Adicione máquinas à abertura para definir o objetivo.";
 
         totals.plannedLabel.textContent = "Objetivo restante";
         totals.planned.textContent = formatMoney(missing);
