@@ -13,6 +13,9 @@ input, textarea { max-width: 100%; }
 .product-review label { display: grid; gap: 8px; }
 .product-review .note { overflow-wrap: anywhere; }
 .btn, .icon-btn { min-height: 44px; min-width: 44px; }
+.logout-button { appearance: none; display: inline-grid; place-items: center; flex: 0 0 44px; width: 44px; height: 44px; padding: 0; border: 0; background: transparent; color: var(--ink); cursor: pointer; }
+.logout-button svg { width: 22px; height: 22px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; pointer-events: none; }
+.logout-button:hover { opacity: .7; }
 .app { width: min(100%, 1040px); padding: 28px 28px 40px; }
 .summary { grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); margin-bottom: 24px; }
 .metric, .metric + .metric { min-height: 68px; padding: 12px; }
