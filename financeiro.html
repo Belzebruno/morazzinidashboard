@@ -1,0 +1,193 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Financeiro | Morazzini</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,600;9..40,700&family=Manrope:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%230f1512'/%3E%3Cpath d='M13 42V22h8l11 12 11-12h8v20h-8V32L32 44 21 32v10z' fill='%23f4eee4'/%3E%3C/svg%3E">
+  <link rel="stylesheet" href="assets/css/base.css">
+  <link rel="stylesheet" href="assets/css/mobile.css">
+</head>
+<body data-page="finance">
+  <div class="shell">
+    <aside class="sidebar" aria-label="Menu principal">
+      <div class="brand">
+        <img src="Logo/Logo__2_-removebg-preview.png" alt="Morazzini móveis planejados">
+      </div>
+
+      <div class="side-rule"></div>
+
+      <nav class="nav-block" aria-label="Planejamento">
+        <div class="nav-title">Planejamento</div>
+        <a class="nav-item active" href="index.html" data-view="opening">
+          <span class="nav-icon">01</span>
+          Abertura
+        </a>
+      </nav>
+
+      <div class="side-rule"></div>
+
+      <nav class="nav-block" aria-label="Etapas futuras">
+        <div class="nav-title">Gestão</div>
+        <a class="nav-item" href="patrimonio.html" data-view="patrimony">
+          <span class="nav-icon">02</span>
+          Patrimônio
+        </a>
+        <a class="nav-item" href="financeiro.html" data-view="finance">
+          <span class="nav-icon">03</span>
+          Financeiro
+        </a>
+      </nav>
+
+      <div class="status-foot">
+        Marcenaria Morazzini<br>
+        Painel de abertura
+      </div>
+    </aside>
+
+    <div class="content">
+      <header class="topbar">
+        <div class="breadcrumbs">
+          <span>Operações</span>
+          <span>/</span>
+          <strong>Plano de abertura</strong>
+        </div>
+        <div class="top-actions">
+          <span class="top-pill" id="currentSection">Abertura</span>
+          <span id="today"></span>
+        </div>
+      </header>
+
+      <main class="app">
+        <section class="saved-progress" id="progressPanel" aria-label="Progresso financeiro">
+          <div class="saved-progress-head">
+            <div class="progress-label">
+              <span id="progressHeading">Valor guardado para as máquinas</span>
+              <strong id="progressText">0%</strong>
+            </div>
+            <div class="saved-money" id="savedMoneyPanel" hidden>
+              <label for="savedInput">Valor guardado</label>
+              <input class="money-input" id="savedInput" inputmode="decimal" autocomplete="off" value="R$ 0,00">
+            </div>
+          </div>
+          <div class="bar" aria-hidden="true">
+            <span class="bar-fill" id="progressFill"></span>
+          </div>
+          <p class="note" id="progressNote">Compras feitas e dinheiro guardado entram juntos no progresso.</p>
+        </section>
+
+        <section class="summary" aria-label="Resumo financeiro">
+          <div class="metric">
+            <span id="plannedLabel">Total planejado</span>
+            <strong id="plannedTotal">R$ 0,00</strong>
+          </div>
+          <div class="metric">
+            <span id="boughtLabel">Já comprado</span>
+            <strong id="boughtTotal">R$ 0,00</strong>
+          </div>
+          <div class="metric">
+            <span id="remainingLabel">A comprar</span>
+            <strong id="remainingTotal">R$ 0,00</strong>
+          </div>
+          <div class="metric">
+            <span id="savedLabel">Guardado</span>
+            <strong id="savedTotal">R$ 0,00</strong>
+          </div>
+          <div class="metric accent">
+            <span id="missingLabel">Falta agora</span>
+            <strong id="missingTotal">R$ 0,00</strong>
+          </div>
+        </section>
+
+
+        <section class="workspace">
+          <section class="panel" id="machinePanel" aria-labelledby="machines-title">
+            <div class="toolbar">
+              <h2 id="machines-title">Máquinas e ferramentas</h2>
+              <div class="actions">
+                <button class="btn primary opening-only" type="button" id="addMachine">Adicionar item</button>
+                <button class="btn danger opening-only" type="button" id="resetList">Restaurar lista inicial</button>
+              </div>
+            </div>
+            <form class="link-adder opening-only" id="linkForm" aria-label="Adicionar máquina por link">
+              <label class="link-label" for="productUrlInput">
+                <span>Adicionar por link</span>
+              </label>
+              <div class="link-row">
+                <input class="link-input" id="productUrlInput" type="url" inputmode="url" autocomplete="off" placeholder="Cole o link do produto">
+                <button class="btn primary" type="submit" id="addByLink">Buscar produto</button>
+              </div>
+              <p class="note">Cole o link da loja encontrado no Google Shopping. Revise os dados antes de salvar.</p>
+              <div class="link-status" id="linkStatus" aria-live="polite"></div>
+            </form>
+            <form id="productReview" class="product-review" hidden>
+              <h3>Revisar produto</h3>
+              <label>Nome do item<input id="reviewName" class="link-input" required maxlength="300"></label>
+              <label>Preço (R$)<input id="reviewPrice" class="link-input" inputmode="decimal" required placeholder="0,00"></label>
+              <p id="reviewSource" class="note"></p>
+              <div class="actions"><button class="btn primary" type="submit">Adicionar à lista</button><button class="btn" id="cancelReview" type="button">Cancelar</button></div>
+            </form>
+            <div class="machine-list" id="machineList"></div>
+            <div class="empty" id="emptyState">Nenhuma máquina cadastrada ainda.</div>
+          </section>
+
+
+          <section class="panel finance-panel" id="financePanel" aria-labelledby="finance-title" hidden>
+            <div class="toolbar">
+              <h2 id="finance-title">Planejamento financeiro</h2>
+            </div>
+            <div class="finance-form">
+              <label class="finance-field" for="financeSalaryInput">
+                <span>Salário mensal</span>
+                <input class="money-input" id="financeSalaryInput" inputmode="decimal" autocomplete="off" value="R$ 0,00">
+              </label>
+              <label class="finance-field" for="financePercentInput">
+                <span>Guardar todo mês</span>
+                <input class="percent-input" id="financePercentInput" inputmode="decimal" autocomplete="off" value="20%">
+              </label>
+            </div>
+            <p class="finance-insight" id="financeInsight">Informe seu salário e o percentual que pretende guardar.</p>
+  
+        </section>
+        </section>
+      </main>
+    </div>
+  </div>
+
+  <template id="machineTemplate">
+    <article class="machine">
+      <textarea class="machine-name" rows="1" aria-label="Nome da máquina"></textarea>
+      <input class="price-input" type="text" inputmode="decimal" aria-label="Valor da máquina">
+      <div class="machine-actions" aria-label="Ações da máquina">
+        <button class="icon-btn link-btn" type="button" aria-label="Abrir link do produto" title="Abrir link do produto">
+          <svg viewBox="0 0 24 24" aria-hidden="true">
+            <path d="M10 13a5 5 0 0 0 7.1 0l2-2a5 5 0 0 0-7.1-7.1l-1.1 1.1"></path>
+            <path d="M14 11a5 5 0 0 0-7.1 0l-2 2a5 5 0 0 0 7.1 7.1l1.1-1.1"></path>
+          </svg>
+        </button>
+        <button class="icon-btn purchase-btn" type="button" aria-label="Marcar como comprado" title="Marcar como comprado">
+          <svg viewBox="0 0 24 24" aria-hidden="true">
+            <path d="M20 6 9 17l-5-5"></path>
+          </svg>
+        </button>
+        <button class="icon-btn remove" type="button" aria-label="Remover máquina" title="Remover máquina">
+          <svg viewBox="0 0 24 24" aria-hidden="true">
+            <path d="M18 6 6 18"></path>
+            <path d="m6 6 12 12"></path>
+          </svg>
+        </button>
+      </div>
+    </article>
+  </template>
+
+  <script defer src="assets/js/config.js"></script>
+  <script defer src="assets/js/format.js"></script>
+  <script defer src="assets/js/state.js"></script>
+  <script defer src="assets/js/products.js"></script>
+  <script defer src="assets/js/views.js"></script>
+  <script defer src="assets/js/app.js"></script>
+</body>
+</html>

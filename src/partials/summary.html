@@ -1,0 +1,40 @@
+        <section class="saved-progress" id="progressPanel" aria-label="Progresso financeiro">
+          <div class="saved-progress-head">
+            <div class="progress-label">
+              <span id="progressHeading">Valor guardado para as máquinas</span>
+              <strong id="progressText">0%</strong>
+            </div>
+            <div class="saved-money" id="savedMoneyPanel" hidden>
+              <label for="savedInput">Valor guardado</label>
+              <input class="money-input" id="savedInput" inputmode="decimal" autocomplete="off" value="R$ 0,00">
+            </div>
+          </div>
+          <div class="bar" aria-hidden="true">
+            <span class="bar-fill" id="progressFill"></span>
+          </div>
+          <p class="note" id="progressNote">Compras feitas e dinheiro guardado entram juntos no progresso.</p>
+        </section>
+
+        <section class="summary" aria-label="Resumo financeiro">
+          <div class="metric">
+            <span id="plannedLabel">Total planejado</span>
+            <strong id="plannedTotal">R$ 0,00</strong>
+          </div>
+          <div class="metric">
+            <span id="boughtLabel">Já comprado</span>
+            <strong id="boughtTotal">R$ 0,00</strong>
+          </div>
+          <div class="metric">
+            <span id="remainingLabel">A comprar</span>
+            <strong id="remainingTotal">R$ 0,00</strong>
+          </div>
+          <div class="metric">
+            <span id="savedLabel">Guardado</span>
+            <strong id="savedTotal">R$ 0,00</strong>
+          </div>
+          <div class="metric accent">
+            <span id="missingLabel">Falta agora</span>
+            <strong id="missingTotal">R$ 0,00</strong>
+          </div>
+        </section>
+

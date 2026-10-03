@@ -1,0 +1,30 @@
+          <section class="panel" id="machinePanel" aria-labelledby="machines-title">
+            <div class="toolbar">
+              <h2 id="machines-title">Máquinas e ferramentas</h2>
+              <div class="actions">
+                <button class="btn primary opening-only" type="button" id="addMachine">Adicionar item</button>
+                <button class="btn danger opening-only" type="button" id="resetList">Restaurar lista inicial</button>
+              </div>
+            </div>
+            <form class="link-adder opening-only" id="linkForm" aria-label="Adicionar máquina por link">
+              <label class="link-label" for="productUrlInput">
+                <span>Adicionar por link</span>
+              </label>
+              <div class="link-row">
+                <input class="link-input" id="productUrlInput" type="url" inputmode="url" autocomplete="off" placeholder="Cole o link do produto">
+                <button class="btn primary" type="submit" id="addByLink">Buscar produto</button>
+              </div>
+              <p class="note">Cole o link da loja encontrado no Google Shopping. Revise os dados antes de salvar.</p>
+              <div class="link-status" id="linkStatus" aria-live="polite"></div>
+            </form>
+            <form id="productReview" class="product-review" hidden>
+              <h3>Revisar produto</h3>
+              <label>Nome do item<input id="reviewName" class="link-input" required maxlength="300"></label>
+              <label>Preço (R$)<input id="reviewPrice" class="link-input" inputmode="decimal" required placeholder="0,00"></label>
+              <p id="reviewSource" class="note"></p>
+              <div class="actions"><button class="btn primary" type="submit">Adicionar à lista</button><button class="btn" id="cancelReview" type="button">Cancelar</button></div>
+            </form>
+            <div class="machine-list" id="machineList"></div>
+            <div class="empty" id="emptyState">Nenhuma máquina cadastrada ainda.</div>
+          </section>
+
