@@ -24,7 +24,7 @@ Abra http://localhost:3000. Para testar no celular conectado à mesma rede, aces
 
 ## Produtos e dados
 
-Cole o link da loja encontrado no Google Shopping. O servidor tenta ler nome e preço de metadados e JSON-LD. Confira a versão, a voltagem e o preço antes de confirmar. Lojas com bloqueios, login ou conteúdo carregado por JavaScript podem exigir preenchimento manual; qualquer produto pode ser cadastrado com nome, preço e link. Links de resultados do Shopping sem destino de loja exigem abrir a oferta e copiar o endereço da loja.
+Cole o link da loja encontrado no Google Shopping. O servidor tenta ler nome e preço de metadados e JSON-LD. Quando encontra nome e preço, o produto é adicionado diretamente à lista, onde os campos podem ser editados. Lojas com bloqueios, login ou conteúdo carregado por JavaScript podem exigir cadastro manual pelo botão Adicionar item. Links de resultados do Shopping sem destino de loja exigem abrir a oferta e copiar o endereço da loja.
 
 Não usa proxies públicos nem uma API oficial do Google Shopping. A importação automática depende da disponibilidade de cada loja. Abrir o HTML sem o servidor mantém a edição manual, mas não a consulta automática.
 

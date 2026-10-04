@@ -41,23 +41,13 @@ async function readProduct(value, redirects = 0, deadline = Date.now() + 9000) {
   });
 }
 const publicFiles = /^(?:index\.html|patrimonio\.html|financeiro\.html|assets\/(?:css|js)\/[\w.-]+|Logo\/[^/]+)$/;
-function isBlockedProductHtml(html) {
-  return /suspicious-traffic-frontend|gz-account-verification|\/account-verification/i.test(html);
-}
 const server = http.createServer(async (req,res) => {
   const url = new URL(req.url,'http://localhost');
   if (['/api/state','/api/session','/api/import','/api/default-items'].includes(url.pathname)) return require('./lib/dashboard-api.cjs').handler(req,res);
   if (req.method !== 'GET') {res.writeHead(405); return res.end();}
   if (url.pathname === '/api/product') {
     res.setHeader('Content-Type','application/json; charset=utf-8'); res.setHeader('Cache-Control','no-store');
-    try {
-      const html = await readProduct(url.searchParams.get('url'));
-      if (isBlockedProductHtml(html)) {
-        res.writeHead(422);
-        return res.end(JSON.stringify({code:'RETAILER_BLOCKED',error:'A loja bloqueou a consulta automática.'}));
-      }
-      res.end(JSON.stringify({html}));
-    }
+    try {res.end(JSON.stringify({html:await readProduct(url.searchParams.get('url'))}));}
     catch {res.writeHead(422); res.end(JSON.stringify({error:'Não foi possível ler a loja. Preencha os dados manualmente.'}));}
     return;
   }
@@ -72,4 +62,4 @@ const server = http.createServer(async (req,res) => {
   } catch {res.writeHead(404);res.end();}
 });
 if (require.main === module) server.listen(Number(process.env.PORT || 3000),'0.0.0.0', () => console.log('Morazzini: http://localhost:' + (process.env.PORT || 3000)));
-module.exports = {server, isPublic, readProduct, isBlockedProductHtml};
+module.exports = {server, isPublic, readProduct};

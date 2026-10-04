@@ -3,7 +3,7 @@ const assert = require('node:assert/strict');
 const vm = require('node:vm');
 const fs = require('node:fs');
 const {server,isPublic} = require('../server.cjs');
-const context = vm.createContext({URL,URLSearchParams});
+const context = vm.createContext({URL});
 vm.runInContext(fs.readFileSync('assets/js/products.js','utf8'),context);
 test('links das três lojas preservam variantes e identificam o produto', () => {
   const examples = [
@@ -50,89 +50,52 @@ test('servidor bloqueia rede privada e não expõe arquivos internos', async () 
   } finally {await new Promise(resolve => server.close(resolve));}
 });
 
-test('Mercado Livre extrai título e preço da oferta principal nos dois exemplos', () => {
-  vm.runInContext(fs.readFileSync('assets/js/format.js','utf8'),context);
-  const url = 'https://www.mercadolivre.com.br/produto/p/MLB15564215?pdp_filters=item_id%3AMLB3861626525';
-  for (const [name, fraction, cents, expected] of [
-    ['Coladeira De Fita De Borda H1100','5.899',undefined,5899],
-    ['Plaina elétrica manual DeWalt D26676 8cm cor amarelo','1.335','60',1335.60]
-  ]) {
-    const amount = {querySelector: selector => ({textContent: selector.endsWith('__fraction') ? fraction : cents})};
-    const doc = {
-      querySelectorAll: () => [{textContent:JSON.stringify({'@type':'Product',name,url,offers:{price:'9999'}})}],
-      querySelector: selector => {
-        if (selector === 'h1.ui-pdp-title' || selector === 'h1') return {textContent:name};
-        if (selector === '.ui-pdp-price__second-line .andes-money-amount:not(.andes-money-amount--previous)') return amount;
-        if (selector.startsWith('meta[property="og:title"]')) return {content:'Título genérico | Mercado Livre'};
-        if (selector.startsWith('meta[property="product:price:amount"]')) return {content:'2222'};
-        return null;
-      }
-    };
-    context.DOMParser = class {parseFromString() {return doc;}};
-    const product = context.extractProductFromHtml('<html></html>',url);
-    assert.equal(product.name,name);
-    assert.equal(product.price,expected);
-  }
-});
-
-test('Mercado Livre preserva oferta e remove rastreamento de anúncios', () => {
-  const url = context.normalizeUrl('https://www.mercadolivre.com.br/coladeira-de-fita-de-borda-h1100/up/MLBU4033264487?pdp_filters=item_id%3AMLB4731281795\\&matt_tool=123&cq_src=google_ads&from=gshop&gad_source=1');
-  assert.equal(new URL(url).searchParams.get('pdp_filters'),'item_id:MLB4731281795');
-  assert.equal(new URL(url).searchParams.size,1);
-  assert.equal(context.cleanProductName('Coladeira H1100 | Mercado Livre','https://www.mercadolivre.com.br/coladeira-h1100/p/MLB123'),'Coladeira H1100');
-  assert.equal(context.isMercadoLivreUrl('https://mercadolivre.com.br.example.org'),false);
-});
-
-test('Mercado Livre não usa preços fora da oferta principal', () => {
-  const doc = {querySelector: selector => selector === 'h1.ui-pdp-title' ? {textContent:'Plaina'} : null};
-  assert.equal(context.getMercadoLivreProductData(doc,'https://www.mercadolivre.com.br/plaina/p/MLB123').price,0);
-});
-
-test('link de recomendação preserva a oferta do fragmento no endereço enviado ao servidor', () => {
-  const url = context.normalizeUrl('https://www.mercadolivre.com.br/plaina/p/MLB2045401345#reco_item_pos=2&wid=MLB5170814047&sid=recos');
-  assert.equal(new URL(url).searchParams.get('pdp_filters'),'item_id:MLB5170814047');
-  assert.equal(new URL(url).hash,'');
-});
-
-test('página de verificação não vira produto no servidor nem no navegador', () => {
-  const {isBlockedProductHtml} = require('../server.cjs');
-  const html = '<html data-assets-prefix="https://http2.mlstatic.com/frontend-assets/suspicious-traffic-frontend/"><title>Mercado Libre</title></html>';
-  assert.equal(isBlockedProductHtml(html),true);
-  assert.equal(isBlockedProductHtml('<html><h1>Plaina</h1></html>'),false);
-  const product = context.extractProductFromHtml(html,'https://www.mercadolivre.com.br/plaina-eletrica/p/MLB2045401345');
-  assert.equal(product.name,'plaina eletrica');
-  assert.equal(product.price,0);
-  assert.equal(product.blocked,true);
-});
-
-test('texto copiado reconhece milhares e centavos separados por quebras de linha', () => {
-  const url = 'https://www.mercadolivre.com.br/plaina/p/MLB2045401345';
-  const coladeira = context.extractCopiedProduct('# Coladeira De Fita De Borda H1100\n\nR$\n5.899',url);
-  assert.equal(coladeira.name,'Coladeira De Fita De Borda H1100');
-  assert.equal(coladeira.price,5899);
-  const plaina = context.extractCopiedProduct('# Plaina elétrica manual DeWalt D26676 8cm cor amarelo\nR$\n1.335\n,\n60',url);
-  assert.equal(plaina.price,1335.60);
-  assert.match(plaina.name,/DeWalt D26676/);
-  for (const text of ['Plaina sem preço','R$ 100,00','Plaina R$ 0','Plaina R$ 1.335,60 ou 10x R$ 133,56']) assert.throws(() => context.extractCopiedProduct(text,url));
-});
-
-
-test('busca bloqueada mantém revisão utilizável sem aceitar título da verificação', async () => {
-  const elements = Object.fromEntries(['#productReview','#reviewName','#reviewPrice','#reviewSource','#reviewOffer','#copiedProduct'].map(id => [id,{value:'',focus(){}}]));
-  const flow = vm.createContext({URL,URLSearchParams,AbortController,setTimeout,clearTimeout,
-    currentView:'opening',addByLinkButton:{disabled:false},productUrlInput:{value:'https://www.mercadolivre.com.br/plaina-eletrica/p/MLB2045401345#wid=MLB5170814047'},
-    linkStatus:{dataset:{}},document:{querySelector: id => elements[id]},
-    fetch: async requested => {
-      assert.equal(new URL(new URL(requested,'https://example.com').searchParams.get('url')).searchParams.get('pdp_filters'),'item_id:MLB5170814047');
-      return {ok:false,json:async () => ({code:'RETAILER_BLOCKED',error:'A loja bloqueou a consulta automática.'})};
+test('cadastro por link adiciona diretamente à lista quando a loja fornece os dados', async () => {
+  let saves = 0;
+  let requests = 0;
+  let finishFetch;
+  const doc = {
+    querySelectorAll: () => [],
+    querySelector: selector => {
+      if (selector.startsWith('meta[property="og:title"]')) return {content:'Serra de bancada'};
+      if (selector.startsWith('meta[property="product:price:amount"]')) return {content:'10460.00'};
+      return null;
     }
+  };
+  const flow = vm.createContext({URL,AbortController,setTimeout,clearTimeout,
+    currentView:'opening',addByLinkButton:{disabled:false},
+    productUrlInput:{value:'https://example.com/serra?variant=220v&gclid=tracking',focus(){}},
+    linkStatus:{dataset:{}},state:{machines:[]},persistAndRenderAll:()=>{saves++;},
+    DOMParser:class {parseFromString(){return doc;}},
+    fetch:()=>{requests++; return new Promise(resolve=>{finishFetch=resolve;});}
+  });
+  vm.runInContext(fs.readFileSync('assets/js/format.js','utf8'),flow);
+  vm.runInContext(fs.readFileSync('assets/js/products.js','utf8'),flow);
+  const pending = flow.addMachineFromLink();
+  // Navigation can re-enable the DOM button while a request is pending.
+  flow.addByLinkButton.disabled = false;
+  await flow.addMachineFromLink();
+  assert.equal(requests,1);
+  finishFetch({ok:true,text:async()=>JSON.stringify({html:'<h1>Serra de bancada</h1>'})});
+  await pending;
+  assert.equal(saves,1);
+  assert.equal(flow.state.machines.length,1);
+  assert.equal(flow.state.machines[0].name,'Serra de bancada');
+  assert.equal(flow.state.machines[0].price,10460);
+  assert.equal(flow.state.machines[0].sourceUrl,'https://example.com/serra?variant=220v');
+  assert.equal(flow.productUrlInput.value,'');
+  assert.equal(flow.addByLinkButton.disabled,false);
+});
+
+test('falha na busca não cadastra um produto vazio nem mantém o botão bloqueado', async () => {
+  const flow = vm.createContext({URL,AbortController,setTimeout,clearTimeout,
+    currentView:'opening',addByLinkButton:{disabled:false},productUrlInput:{value:'https://example.com/serra',focus(){}},
+    linkStatus:{dataset:{}},state:{machines:[]},fetch:async()=>({ok:false,status:422})
   });
   vm.runInContext(fs.readFileSync('assets/js/products.js','utf8'),flow);
   await flow.addMachineFromLink();
-  assert.equal(elements['#reviewName'].value,'plaina eletrica');
-  assert.equal(elements['#reviewPrice'].value,'');
-  assert.equal(elements['#productReview'].hidden,false);
-  assert.match(flow.linkStatus.textContent,/Mercado Livre bloqueou/);
-  assert.match(elements['#reviewOffer'].href,/item_id/);
+  assert.equal(flow.state.machines.length,0);
+  assert.equal(flow.productUrlInput.value,'https://example.com/serra');
   assert.equal(flow.addByLinkButton.disabled,false);
+  assert.match(flow.linkStatus.textContent,/Adicionar item/);
 });

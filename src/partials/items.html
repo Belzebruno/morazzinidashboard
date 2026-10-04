@@ -12,20 +12,10 @@
               </label>
               <div class="link-row">
                 <input class="link-input" id="productUrlInput" type="url" inputmode="url" autocomplete="off" placeholder="Cole o link do produto">
-                <button class="btn primary" type="submit" id="addByLink">Buscar produto</button>
+                <button class="btn primary" type="submit" id="addByLink">Adicionar por link</button>
               </div>
-              <p class="note">Cole o link da loja encontrado no Google Shopping. Revise os dados antes de salvar.</p>
+              <p class="note">Cole o link da loja para adicionar o produto à lista.</p>
               <div class="link-status" id="linkStatus" aria-live="polite"></div>
-            </form>
-            <form id="productReview" class="product-review" hidden>
-              <h3>Revisar produto</h3>
-              <label>Nome do item<input id="reviewName" class="link-input" required maxlength="300"></label>
-              <label>Preço (R$)<input id="reviewPrice" class="link-input" inputmode="decimal" required placeholder="0,00"></label>
-              <p id="reviewSource" class="note"></p>
-              <p class="note"><a id="reviewOffer" target="_blank" rel="noopener noreferrer">Abrir anúncio para conferir</a></p>
-              <label>Título e preço copiados do anúncio<textarea id="copiedProduct" class="link-input" rows="4" placeholder="Nome do produto&#10;R$ 1.335,60"></textarea></label>
-              <button class="btn" id="applyCopiedProduct" type="button">Preencher com o texto copiado</button>
-              <div class="actions"><button class="btn primary" type="submit">Adicionar à lista</button><button class="btn" id="cancelReview" type="button">Cancelar</button></div>
             </form>
             <div class="machine-list" id="machineList"></div>
             <div class="empty" id="emptyState">Nenhuma máquina cadastrada ainda.</div>

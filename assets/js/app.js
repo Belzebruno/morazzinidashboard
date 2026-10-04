@@ -126,41 +126,4 @@
     renderTotals();
   
 document.querySelector('#today').textContent = new Intl.DateTimeFormat('pt-BR', {dateStyle: 'medium'}).format(new Date());
-document.querySelector('#productReview').addEventListener('submit', event => {
-  event.preventDefault();
-  if (!pendingProduct) return;
-  const name = document.querySelector('#reviewName').value.trim();
-  const priceField = document.querySelector('#reviewPrice');
-  const raw = priceField.value.trim();
-  const price = parseMoney(raw);
-  if (!name || !/^(?:R\$\s*)?\d[\d.,\s]*$/.test(raw) || !Number.isFinite(price) || price <= 0) {
-    setLinkStatus('Informe o nome e um preço maior que zero.', 'warning'); priceField.focus(); return;
-  }
-  state.machines.push({...pendingProduct, name, price, bought: false});
-  persistAndRenderAll();
-  pendingProduct = null;
-  document.querySelector('#productReview').hidden = true;
-  productUrlInput.value = '';
-  setLinkStatus('Item adicionado à lista.', 'success');
-  productUrlInput.focus();
-});
-document.querySelector('#cancelReview').addEventListener('click', () => {
-  pendingProduct = null;
-  document.querySelector('#productReview').hidden = true;
-  setLinkStatus('');
-  productUrlInput.focus();
-});
-productUrlInput.addEventListener('input', () => {
-  pendingProduct = null;
-  document.querySelector('#productReview').hidden = true;
-});
 initializeDatabase();
-document.querySelector('#applyCopiedProduct').addEventListener('click', () => {
-  if (!pendingProduct) return;
-  try {
-    const product = extractCopiedProduct(document.querySelector('#copiedProduct').value, pendingProduct.sourceUrl);
-    document.querySelector('#reviewName').value = product.name;
-    document.querySelector('#reviewPrice').value = product.price.toFixed(2).replace('.', ',');
-    setLinkStatus('Confira o título e o preço antes de adicionar à lista.', 'success');
-  } catch (error) { setLinkStatus(error.message, 'warning'); }
-});

@@ -8,10 +8,6 @@ html { overflow-y: scroll; }
 :focus-visible { outline: 3px solid var(--green); outline-offset: 3px; }
 button, .nav-item { touch-action: manipulation; }
 input, textarea { max-width: 100%; }
-.product-review { display: grid; gap: 16px; padding: 20px; margin: 16px 0; background: white; border: 1px solid var(--line); border-radius: 12px; }
-.product-review h3 { margin: 0; }
-.product-review label { display: grid; gap: 8px; }
-.product-review .note { overflow-wrap: anywhere; }
 .btn, .icon-btn { min-height: 44px; min-width: 44px; }
 .logout-button { appearance: none; display: inline-grid; place-items: center; flex: 0 0 44px; width: 44px; height: 44px; padding: 0; border: 0; background: transparent; color: var(--ink); cursor: pointer; }
 .logout-button svg { width: 22px; height: 22px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; pointer-events: none; }
