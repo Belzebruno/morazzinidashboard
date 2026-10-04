@@ -13,9 +13,12 @@ function normalizeUrl(value) {
       if (target && /^https?:/.test(target)) url = new URL(target);
     }
     if (!['http:', 'https:'].includes(url.protocol) || url.username || url.password) return '';
-    for (const key of [...url.searchParams.keys()]) if (/^(utm_|gclid$|gbraid$|wbraid$|gad_|srsltid$)/i.test(key)) url.searchParams.delete(key);
+    for (const key of [...url.searchParams.keys()]) if (/^(utm_|gclid$|gbraid$|wbraid$|gad_|srsltid$)/i.test(key) || (isMercadoLivreUrl(url.href) && /^(matt_|cq_|from$)/i.test(key))) url.searchParams.delete(key);
     return url.href;
   } catch { return ''; }
+}
+function isMercadoLivreUrl(value) {
+  try { return /(^|\.)mercadolivre\.com\.br$/.test(new URL(value).hostname); } catch { return false; }
 }
 function machineNameFromUrl(url) {
   try {
@@ -30,8 +33,9 @@ function machineNameFromUrl(url) {
         .replace(/\s+/g, " ")
         .replace(/\s[-|]\s.*?(Loja do Mecânico|Comprar|Oferta).*$/i, "")
         .replace(/\s*-\s*Loja do Mecânico.*$/i, "")
+        .replace(/\s*[|\-–]\s*Mercado\s*Livre.*$/i, "")
         .trim();
-      if (/confirme seu acesso|access denied|just a moment|captcha|verifique.*humano|attention required/i.test(clean)) return fallback;
+      if (/confirme seu acesso|access denied|just a moment|captcha|verifique.*humano|attention required|verificação de segurança|faça login|entrar no mercado livre/i.test(clean)) return fallback;
       return clean || fallback;
     }
 
@@ -92,9 +96,24 @@ function machineNameFromUrl(url) {
       return {};
     }
 
+    function getMercadoLivreProductData(document, url) {
+      if (!isMercadoLivreUrl(url)) return {};
+      const name = document.querySelector('h1.ui-pdp-title')?.textContent;
+      // Scope the amount to the main offer: recommendations, old prices and
+      // installments also contain andes-money-amount elements.
+      const amount = document.querySelector('.ui-pdp-price__second-line .andes-money-amount:not(.andes-money-amount--previous)');
+      const fraction = amount?.querySelector('.andes-money-amount__fraction')?.textContent;
+      const cents = amount?.querySelector('.andes-money-amount__cents')?.textContent;
+      const whole = String(fraction || '').replace(/\s/g, '');
+      const decimal = String(cents || '').trim();
+      const valid = /^\d+(?:\.\d{3})*$/.test(whole) && (!decimal || /^\d{2}$/.test(decimal));
+      return { name, price: valid ? Number(whole.replace(/\./g, '')) + Number(decimal || 0) / 100 : 0 };
+    }
+
     function extractProductFromHtml(html, url) {
       const document = new DOMParser().parseFromString(html, "text/html");
       const jsonLd = getJsonLdProductData(document, url);
+      const mercadoLivre = getMercadoLivreProductData(document, url);
       const metaName = document.querySelector('meta[property="og:title"], meta[name="twitter:title"]')?.content;
       const headingName = document.querySelector("h1")?.textContent;
       const titleName = document.querySelector("title")?.textContent;
@@ -102,8 +121,8 @@ function machineNameFromUrl(url) {
         || document.querySelector('[itemprop="price"]')?.getAttribute("content")
         || document.querySelector('[data-price]')?.getAttribute("data-price");
 
-      const name = cleanProductName(jsonLd.name || metaName || headingName || titleName, url);
-      const priceText = metaPrice || jsonLd.price;
+      const name = cleanProductName(mercadoLivre.name || jsonLd.name || headingName || metaName || titleName, url);
+      const priceText = mercadoLivre.price || jsonLd.price || metaPrice;
 
       return {
         name,

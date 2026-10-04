@@ -49,3 +49,41 @@ test('servidor bloqueia rede privada e não expõe arquivos internos', async () 
     assert.equal((await fetch(`${base}/api/product?url=http://127.0.0.1/`)).status,422);
   } finally {await new Promise(resolve => server.close(resolve));}
 });
+
+test('Mercado Livre extrai título e preço da oferta principal nos dois exemplos', () => {
+  vm.runInContext(fs.readFileSync('assets/js/format.js','utf8'),context);
+  const url = 'https://www.mercadolivre.com.br/produto/p/MLB15564215?pdp_filters=item_id%3AMLB3861626525';
+  for (const [name, fraction, cents, expected] of [
+    ['Coladeira De Fita De Borda H1100','5.899',undefined,5899],
+    ['Plaina elétrica manual DeWalt D26676 8cm cor amarelo','1.335','60',1335.60]
+  ]) {
+    const amount = {querySelector: selector => ({textContent: selector.endsWith('__fraction') ? fraction : cents})};
+    const doc = {
+      querySelectorAll: () => [{textContent:JSON.stringify({'@type':'Product',name,url,offers:{price:'9999'}})}],
+      querySelector: selector => {
+        if (selector === 'h1.ui-pdp-title' || selector === 'h1') return {textContent:name};
+        if (selector === '.ui-pdp-price__second-line .andes-money-amount:not(.andes-money-amount--previous)') return amount;
+        if (selector.startsWith('meta[property="og:title"]')) return {content:'Título genérico | Mercado Livre'};
+        if (selector.startsWith('meta[property="product:price:amount"]')) return {content:'2222'};
+        return null;
+      }
+    };
+    context.DOMParser = class {parseFromString() {return doc;}};
+    const product = context.extractProductFromHtml('<html></html>',url);
+    assert.equal(product.name,name);
+    assert.equal(product.price,expected);
+  }
+});
+
+test('Mercado Livre preserva oferta e remove rastreamento de anúncios', () => {
+  const url = context.normalizeUrl('https://www.mercadolivre.com.br/coladeira-de-fita-de-borda-h1100/up/MLBU4033264487?pdp_filters=item_id%3AMLB4731281795\\&matt_tool=123&cq_src=google_ads&from=gshop&gad_source=1');
+  assert.equal(new URL(url).searchParams.get('pdp_filters'),'item_id:MLB4731281795');
+  assert.equal(new URL(url).searchParams.size,1);
+  assert.equal(context.cleanProductName('Coladeira H1100 | Mercado Livre','https://www.mercadolivre.com.br/coladeira-h1100/p/MLB123'),'Coladeira H1100');
+  assert.equal(context.isMercadoLivreUrl('https://mercadolivre.com.br.example.org'),false);
+});
+
+test('Mercado Livre não usa preços fora da oferta principal', () => {
+  const doc = {querySelector: selector => selector === 'h1.ui-pdp-title' ? {textContent:'Plaina'} : null};
+  assert.equal(context.getMercadoLivreProductData(doc,'https://www.mercadolivre.com.br/plaina/p/MLB123').price,0);
+});
