@@ -3,7 +3,7 @@ const assert = require('node:assert/strict');
 const vm = require('node:vm');
 const fs = require('node:fs');
 const {server,isPublic} = require('../server.cjs');
-const context = vm.createContext({URL});
+const context = vm.createContext({URL,URLSearchParams});
 vm.runInContext(fs.readFileSync('assets/js/products.js','utf8'),context);
 test('links das três lojas preservam variantes e identificam o produto', () => {
   const examples = [
@@ -86,4 +86,53 @@ test('Mercado Livre preserva oferta e remove rastreamento de anúncios', () => {
 test('Mercado Livre não usa preços fora da oferta principal', () => {
   const doc = {querySelector: selector => selector === 'h1.ui-pdp-title' ? {textContent:'Plaina'} : null};
   assert.equal(context.getMercadoLivreProductData(doc,'https://www.mercadolivre.com.br/plaina/p/MLB123').price,0);
+});
+
+test('link de recomendação preserva a oferta do fragmento no endereço enviado ao servidor', () => {
+  const url = context.normalizeUrl('https://www.mercadolivre.com.br/plaina/p/MLB2045401345#reco_item_pos=2&wid=MLB5170814047&sid=recos');
+  assert.equal(new URL(url).searchParams.get('pdp_filters'),'item_id:MLB5170814047');
+  assert.equal(new URL(url).hash,'');
+});
+
+test('página de verificação não vira produto no servidor nem no navegador', () => {
+  const {isBlockedProductHtml} = require('../server.cjs');
+  const html = '<html data-assets-prefix="https://http2.mlstatic.com/frontend-assets/suspicious-traffic-frontend/"><title>Mercado Libre</title></html>';
+  assert.equal(isBlockedProductHtml(html),true);
+  assert.equal(isBlockedProductHtml('<html><h1>Plaina</h1></html>'),false);
+  const product = context.extractProductFromHtml(html,'https://www.mercadolivre.com.br/plaina-eletrica/p/MLB2045401345');
+  assert.equal(product.name,'plaina eletrica');
+  assert.equal(product.price,0);
+  assert.equal(product.blocked,true);
+});
+
+test('texto copiado reconhece milhares e centavos separados por quebras de linha', () => {
+  const url = 'https://www.mercadolivre.com.br/plaina/p/MLB2045401345';
+  const coladeira = context.extractCopiedProduct('# Coladeira De Fita De Borda H1100\n\nR$\n5.899',url);
+  assert.equal(coladeira.name,'Coladeira De Fita De Borda H1100');
+  assert.equal(coladeira.price,5899);
+  const plaina = context.extractCopiedProduct('# Plaina elétrica manual DeWalt D26676 8cm cor amarelo\nR$\n1.335\n,\n60',url);
+  assert.equal(plaina.price,1335.60);
+  assert.match(plaina.name,/DeWalt D26676/);
+  for (const text of ['Plaina sem preço','R$ 100,00','Plaina R$ 0','Plaina R$ 1.335,60 ou 10x R$ 133,56']) assert.throws(() => context.extractCopiedProduct(text,url));
+});
+
+
+test('busca bloqueada mantém revisão utilizável sem aceitar título da verificação', async () => {
+  const elements = Object.fromEntries(['#productReview','#reviewName','#reviewPrice','#reviewSource','#reviewOffer','#copiedProduct'].map(id => [id,{value:'',focus(){}}]));
+  const flow = vm.createContext({URL,URLSearchParams,AbortController,setTimeout,clearTimeout,
+    currentView:'opening',addByLinkButton:{disabled:false},productUrlInput:{value:'https://www.mercadolivre.com.br/plaina-eletrica/p/MLB2045401345#wid=MLB5170814047'},
+    linkStatus:{dataset:{}},document:{querySelector: id => elements[id]},
+    fetch: async requested => {
+      assert.equal(new URL(new URL(requested,'https://example.com').searchParams.get('url')).searchParams.get('pdp_filters'),'item_id:MLB5170814047');
+      return {ok:false,json:async () => ({code:'RETAILER_BLOCKED',error:'A loja bloqueou a consulta automática.'})};
+    }
+  });
+  vm.runInContext(fs.readFileSync('assets/js/products.js','utf8'),flow);
+  await flow.addMachineFromLink();
+  assert.equal(elements['#reviewName'].value,'plaina eletrica');
+  assert.equal(elements['#reviewPrice'].value,'');
+  assert.equal(elements['#productReview'].hidden,false);
+  assert.match(flow.linkStatus.textContent,/Mercado Livre bloqueou/);
+  assert.match(elements['#reviewOffer'].href,/item_id/);
+  assert.equal(flow.addByLinkButton.disabled,false);
 });

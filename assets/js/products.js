@@ -13,6 +13,12 @@ function normalizeUrl(value) {
       if (target && /^https?:/.test(target)) url = new URL(target);
     }
     if (!['http:', 'https:'].includes(url.protocol) || url.username || url.password) return '';
+    if (isMercadoLivreUrl(url.href)) {
+      const fragment = new URLSearchParams(url.hash.slice(1));
+      const offer = url.searchParams.get('wid') || fragment.get('wid');
+      if (!url.searchParams.has('pdp_filters') && /^MLB\d+$/.test(offer || '')) url.searchParams.set('pdp_filters', 'item_id:' + offer);
+      url.hash = '';
+    }
     for (const key of [...url.searchParams.keys()]) if (/^(utm_|gclid$|gbraid$|wbraid$|gad_|srsltid$)/i.test(key) || (isMercadoLivreUrl(url.href) && /^(matt_|cq_|from$)/i.test(key))) url.searchParams.delete(key);
     return url.href;
   } catch { return ''; }
@@ -35,7 +41,7 @@ function machineNameFromUrl(url) {
         .replace(/\s*-\s*Loja do Mecânico.*$/i, "")
         .replace(/\s*[|\-–]\s*Mercado\s*Livre.*$/i, "")
         .trim();
-      if (/confirme seu acesso|access denied|just a moment|captcha|verifique.*humano|attention required|verificação de segurança|faça login|entrar no mercado livre/i.test(clean)) return fallback;
+      if (/confirme seu acesso|access denied|just a moment|captcha|verifique.*humano|attention required|verificação de segurança|faça login|entrar no mercado livre|^mercado\s*livr[ei]$/i.test(clean)) return fallback;
       return clean || fallback;
     }
 
@@ -111,6 +117,9 @@ function machineNameFromUrl(url) {
     }
 
     function extractProductFromHtml(html, url) {
+      if (isMercadoLivreUrl(url) && /suspicious-traffic-frontend|gz-account-verification|\/account-verification/i.test(html)) {
+        return {name: machineNameFromUrl(url), price: 0, blocked: true};
+      }
       const document = new DOMParser().parseFromString(html, "text/html");
       const jsonLd = getJsonLdProductData(document, url);
       const mercadoLivre = getMercadoLivreProductData(document, url);
@@ -145,9 +154,25 @@ function machineNameFromUrl(url) {
 
 
 async function loadProductHtml(url) {
-  const response = await fetchWithTimeout('/api/product?url=' + encodeURIComponent(url), 12000);
-  const data = JSON.parse(response);
-  return data.html;
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), 12000);
+  try {
+    const response = await fetch('/api/product?url=' + encodeURIComponent(url), {signal:controller.signal});
+    const data = await response.json();
+    if (!response.ok) throw Object.assign(new Error(data.error || 'Loja indisponível'), {code:data.code});
+    return data.html;
+  } finally { clearTimeout(timer); }
+}
+function extractCopiedProduct(text, url) {
+  const value = String(text || '').replace(/\\\s*\r?\n/g, '\n');
+  const amounts = [...value.matchAll(/R\$\s*(\d+(?:\.\d{3})*(?:\s*,\s*\d{2})?)(?!\d)/g)];
+  if (amounts.length !== 1) throw new Error('Cole apenas o título e o preço total do produto, sem parcelas ou outros valores.');
+  const amount = amounts[0];
+  const name = cleanProductName(value.slice(0, amount.index).replace(/^\s*#+\s*/, '').trim(), url);
+  if (!value.slice(0, amount.index).trim()) throw new Error('Inclua o título antes do preço.');
+  const price = Number(amount[1].replace(/\s|\./g, '').replace(',', '.'));
+  if (!Number.isFinite(price) || price <= 0) throw new Error('Inclua um preço maior que zero.');
+  return {name, price};
 }
 let pendingProduct = null;
 let lookupId = 0;
@@ -167,14 +192,16 @@ async function addMachineFromLink() {
   try {
     product = extractProductFromHtml(await loadProductHtml(url), url);
     loaded = product.price > 0;
-  } catch { /* Manual review remains available for blocked retailers. */ }
+  } catch (error) { product.blocked = error.code === 'RETAILER_BLOCKED'; }
   if (request !== lookupId) return;
   pendingProduct = {...product, sourceUrl: url};
   document.querySelector('#reviewName').value = product.name;
   document.querySelector('#reviewPrice').value = product.price > 0 ? String(product.price).replace('.', ',') : '';
   document.querySelector('#reviewSource').textContent = 'Loja: ' + new URL(url).hostname;
+  document.querySelector('#reviewOffer').href = url;
+  document.querySelector('#copiedProduct').value = '';
   document.querySelector('#productReview').hidden = false;
-  setLinkStatus(loaded ? 'Confira o nome, a versão e o preço da oferta.' : 'A loja não forneceu os dados automaticamente. Preencha nome e preço para adicionar.', loaded ? 'success' : 'warning');
+  setLinkStatus(loaded ? 'Confira o nome, a versão e o preço da oferta.' : product.blocked ? 'O Mercado Livre bloqueou a consulta automática. Abra o anúncio e cole o título e o preço abaixo, ou preencha os campos.' : 'A loja não forneceu os dados automaticamente. Cole o título e o preço do anúncio abaixo, ou preencha os campos.', loaded ? 'success' : 'warning');
   addByLinkButton.disabled = false;
   productUrlInput.disabled = false;
   addByLinkButton.textContent = 'Buscar produto';

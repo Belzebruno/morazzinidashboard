@@ -155,3 +155,12 @@ productUrlInput.addEventListener('input', () => {
   document.querySelector('#productReview').hidden = true;
 });
 initializeDatabase();
+document.querySelector('#applyCopiedProduct').addEventListener('click', () => {
+  if (!pendingProduct) return;
+  try {
+    const product = extractCopiedProduct(document.querySelector('#copiedProduct').value, pendingProduct.sourceUrl);
+    document.querySelector('#reviewName').value = product.name;
+    document.querySelector('#reviewPrice').value = product.price.toFixed(2).replace('.', ',');
+    setLinkStatus('Confira o título e o preço antes de adicionar à lista.', 'success');
+  } catch (error) { setLinkStatus(error.message, 'warning'); }
+});

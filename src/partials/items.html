@@ -22,9 +22,11 @@
               <label>Nome do item<input id="reviewName" class="link-input" required maxlength="300"></label>
               <label>Preço (R$)<input id="reviewPrice" class="link-input" inputmode="decimal" required placeholder="0,00"></label>
               <p id="reviewSource" class="note"></p>
+              <p class="note"><a id="reviewOffer" target="_blank" rel="noopener noreferrer">Abrir anúncio para conferir</a></p>
+              <label>Título e preço copiados do anúncio<textarea id="copiedProduct" class="link-input" rows="4" placeholder="Nome do produto&#10;R$ 1.335,60"></textarea></label>
+              <button class="btn" id="applyCopiedProduct" type="button">Preencher com o texto copiado</button>
               <div class="actions"><button class="btn primary" type="submit">Adicionar à lista</button><button class="btn" id="cancelReview" type="button">Cancelar</button></div>
             </form>
             <div class="machine-list" id="machineList"></div>
             <div class="empty" id="emptyState">Nenhuma máquina cadastrada ainda.</div>
           </section>
-
